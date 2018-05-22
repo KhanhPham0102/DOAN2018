@@ -1,0 +1,254 @@
+
+16
+Thread và Locks
+
+Trong cu?c ph?ng v?n trên Microsoft, Google ho?c Amazon, nó không quá kh?ng khi?p khi du?c h?i v? vi?c th?c hi?n m?t thu?t toán v?i Threads (tr? khi b?n làm vi?c trong m?t nhóm mà dây là m?t ki nang c?c kì quan tr?ng). Tuy nhiên nó tuong d?i ph? bi?n trong các cu?c ph?ng v?n khác t?i b?t kì công ty nào d? truy c?p vào s? hi?u bi?t chung v? các Thread c?a b?n, d?c bi?t hi?u bi?t b? t?c c?a b?n.
+Chuong này s? gi?i thi?u v? d? tài này.
+
+Threads in Java
+M?i thread trong Java du?c t?o và di?u khi?n b?i d?i tu?ng d?c nh?t c?a Java.lang. L?p Thread. Khi m?t ?ng d?ng d?c l?p du?c ch?y, m?t thread ngu?i dùng du?c t?o t? d?ng d? th?c thi phuong th?c chính. Thread này du?c g?i là thread chính.
+Trong java, chúng ta có th? tri?n khai các thread theo 2 cách:
+-	Th?c hi?n b?i java.lang. Giao di?n Runnable.
+-	M? r?ng java.lang, l?p Thread
+Chúng ta s? che c? hai ? bên du?i.
+Giao di?n tri?n khai Runnable
+Theo dõi và khai tri?n m?t cách don gi?n.
+1	public interface Runnable {
+2	  void run();
+3	}
+
+Ð? t?o và s? d?ng m?t thread s? d?ng giao di?n này, chúng ta làm theo:
+1.	T?o m?t l?p mà th?c thi giao di?n Runnable. M?t d?i tu?ng c?a l?p này là m?t d?i tu?ng Runnable.
+2.	T?o m?t d?i tu?ng c?a lo?i Thread b?ng cách vu?t qua m?t d?i tu?ng Runnable nhu t?o d?i s? cho hàm t?o chu?i. Ð?i tu?ng Thread bây gi? có m?t d?i tu?ng Runnable d? th?c thi phuong th?c run().
+
+
+
+
+
+
+
+
+
+3.	Phuong th?c start( ) du?c g?i trên d?i tu?ng Thread du?c t?o trong bu?c tru?c.
+
+Ví d? :
+public class RunnableThreadExample implement s Runnable { 
+	public int count = 0;
+
+	public void run() { 
+		System.out.println("RunnableThread starting.");
+		try { 
+			while (count < 5) {
+				Thread.sleep(500);
+				count++ ;
+			} 
+		} 	catch (InterruptedException exc) {
+			System.out.println("RunnableThread interrupted."); 
+		}
+		System.out.println("RunnableThread terminating.");
+	}
+}
+		
+public static void main(String[] args){ 
+	RunnableThreadExample instance = new RunnableThreadExample();
+	Thread thread = new Thread(instance);
+	thread.start();
+	
+	/ * waits until above thread counts to 5 (slowly) */ 
+	while (instance.count != 5 ) {
+		try { 
+			Thread.sleep(250);
+		} catch (InterruptedException exc) { 
+			exc.printStackTrace();
+		} 
+	}
+} 
+Trong code ? trên, th?y r?ng t?t c? nh?ng gì chúng ta th?c s? c?n làm là th?c hi?n phuong th?c run( ) l?p c?a chúng ta (dòng 4). Phuong th?c khác có th?  vu?t qua m?t th? hi?n c?a l?p d? Thread (obj) m?i (dòng 19-20) và g?i start( ) on the thread (dòng 21).
+
+M? r?ng l?p Thread
+
+Thay vào dó, chúng ta có th? t?o m?t lu?ng b?ng cách m? r?ng l?p thread. di?u này h?u nhu luôn luôn có nghia là chúng ta ghi dè lên phuong th?c run (), và l?p con cung có th? g?i hàm t?o m?t cách rõ ràng trong hàm t?o c?a nó.
+
+Phía du?i là code ví d? v? di?u này:
+
+public class ThreadExample extends Thread {
+	int count = 0;
+	
+	public void run( ) {
+		System.out.println("Thread starting.");
+		try {
+			while (count < 5) {
+				Thread.sleep(500);
+				System.out.println("In Thread, count is " + count);
+				count++;
+			}
+		} catch (InterruptedException exc ) {
+			System.out.println("Thread interrupted.");
+		} System.out.println("Thread terminating.");
+	}
+}
+
+public class ExampleB {
+	public static void main(String args[]) { 
+		ThreadExample instance = new ThreadExample();
+		instance.start(); 
+		
+		while (instance.count != 5) { 
+			try {
+				Thread.sleep(250); 
+			} catch (InterruptedException exc) {
+				exc.printStackTrace() ;
+			}
+		}
+	}
+}
+
+
+
+
+Code này r?t gi?ng v?i phuong pháp ti?p c?n thông minh. S? khác bi?t là vì chúng ta dang m? r?ng l?p Thread, thay vì ch? th?c hi?n m?t giao di?n, chúng ta có th? g?i start( ) trên cá th? c?a l?p dó. 
+M? r?ng l?p Thread so v?i th?c hi?n giao di?n Runnable 
+Khi t?o các ch? d?, có hai lý do t?i sao vi?c th?c hi?n giao di?n Runnable có th? thích h?p hon d? m? r?ng l?p Thread:
+• Java không h? tr? da k? th?a. Do dó, vi?c m? r?ng các l?p Thread có nghia là l?p con không th? m? r?ng b?t k? l?p nào khác. M?t l?p th?c hi?n giao di?n Runnable s? có th? m? r?ng m?t l?p khác. 
+• M?t l?p ch? có th? quan tâm d?n vi?c runnable, và do dó, th?a hu?ng toàn b? chi phí c?a l?p Thread s? là quá m?c.
+
+Synchronization and Lock
+Các Thread trong m?t ti?n trình dã cho chia s? cùng m?t không gian b? nh?, c? hai d?u là s? duong và âm. Nó cho phép các Thread chia s? d? li?u, có th? có giá tr?. Tuy nhiên, nó cung t?o ra co h?i cho các v?n d? khi hai Thread s?a d?i m?t tài nguyên ? cùng m?t lúc. Java cung c?p d?ng b? hóa d? ki?m soát quy?n truy c?p vào các tài nguyên du?c chia s?. T? khóa du?c d?ng b? hóa và khóa t?o thành co s? d? tri?n khai th?c hi?n d?ng b? mã.
+Synchronized Methods
+Thông thu?ng, chúng tôi h?n ch? quy?n truy c?p vào tài nguyên du?c chia s? thông qua vi?c s? d?ng t? khóa du?c d?ng b? hóa. Tôi có th? du?c áp d?ng cho các phuong pháp và kh?i mã, và h?n ch? nhi?u Thread t? vi?c th?c thi code d?ng th?i trên cùng m?t d?i tu?ng
+Ð? làm rõ di?m cu?i cùng, xem xét mã sau:
+public class MyClass extends Thread { 
+	private String name;
+	private MyObject myObj;
+	
+	public MyClass(MyObject obj , String n) {
+		name = n ;
+		myObj = obj;
+	}
+	
+	public void run( ) { 
+	myObj.foo(name);
+	}
+}
+
+public class MyObject { 
+	public synchronized void foo(String name ) {
+		try {
+			System.out.println("Thread " + name + ".foo(): starting");
+			Thread.sleep(3000);
+			System.out.println("Thread " + name + ".fooQ: ending");
+		} catch (InterruptedException exc) {
+			System.out.println("Thread " + name + ": interrupted.");
+		}
+	} 
+}
+Có th? hai tru?ng h?p Myclass g?i foo cùng m?t lúc không? Nó ph? thu?c. N?u h? có cùng m?t tru?ng h?p MyObject, thì không. Nhung, n?u h? gi? các tài li?u tham kh?o khác nhau, thì câu tr? l?i là có.
+/ * Difference references - both threads can call MyObject.foo( ) * /
+MyObject objl = new MyObject();
+MyObject obj2 = new MyObject();
+MyClass threadl = new MyClass(objl, "1");
+MyClass thread2 = new MyClass(ob]2, "2"); 
+threadl.start();
+thread2.start( ) 
+/ * Same reference to obj. Only one will be allowed to call foo, and the other will be forced to wait. */
+MyObject obj = new MyObject();
+MyClass thread1 = new MyClass(obj, "1");
+MyClass thread2 = new MyClass(obj, "2");
+threadl.start()
+thread2.start()
+Các phuong th?c tinh d?ng b? hóa trên l?p class. Hai lu?ng trên không th? d?ng th?i th?c hi?n các phuong th?c tinh d?ng b? trên cùng m?t l?p, ngay c? khi m?t phuong th?c dang g?i foo và l?nh kia là thanh g?i.
+chap16_p157
+ public class MyClass extends Thread {
+	...
+	public void run() {
+		if (name.equals("l") ) MyObject.foo(name);
+		else if (name.equals("2") ) MyObject.bar(name) ;
+	}
+}
+public class MyObject {
+	public static synchronized void foo(String name ) {
+	/ * same as before */
+	}
+	public static synchronized void bar(String name) {
+		/ * sam e as foo * /
+	}
+}
+N?u b?n ch?y code này, b?n s? th?y in ra:
+Thread l.foo(): starting 
+Thread l.foo() : ending 
+Thread 2.bar() : starting 
+Thread 2.bar() : ending
+
+Synchronized Blocks
+Tuong t?, m?t kh?i mã có th? du?c d?ng b? hóa. Ði?u này ho?t d?ng r?t gi?ng v?i vi?c d?ng b? hóa m?t phuong th?c.
+public class MyClass extends Thread {
+...
+	public void run() { 
+		myObj.foo(name);
+	}
+}
+public class MyObject {
+	public void foo(String name) {
+		synchronized(this) {
+		...
+		}
+	}
+}
+Gi?ng nhu vi?c d?ng b? m?t phuong th?c, ch? m?t Thread cho m?i th? hi?n c?a MyObject có th? th?c thi mã trong kh?i d?ng b?. Ði?u dó có nghia là, n?u threadl và thread2 có cùng m?t th? hi?n MyObject, ch? m?t cái s? du?c phép th?c thi kh?i mã t?i m?t th?i di?m.
+Locks
+Ð? ki?m soát chi ti?t hon, chúng tôi có th? s? d?ng khóa. M?t khóa (ho?c màn hình)du?c s? d?ng d? d?ng b? hóa quy?n truy c?p vào tài nguyên du?c chia s? b?ng cách liên k?t tài nguyên v?i khóa. M?t lu?ng du?c truy c?p vào tài nguyên du?c chia s? b?ng cách d?u tiên có du?c khóa du?c liên k?t v?i tài nguyên. T?i b?t k? th?i di?m nào, t?i da m?t lu?ng có th? gi? khóa và do dó, ch? có m?t lu?ng có th? truy c?p vào ph?n chia s? du?c chia s?.
+Tru?ng h?p s? d?ng ph? bi?n cho khóa là khi m?t tài nguyên du?c truy c?p t? nhi?u d?a di?m, ch? nên truy c?p m?t chu?i t?i m?t th?i di?m. Tru?ng h?p này du?c th? hi?n trong mã bên du?i:
+public class LockedATM { 
+	private Lock lock;
+	private int balance = 100;
+	public LockedATMQ { 
+		lock = new ReentrantLockQ; 
+	}
+	public int withdraw(int value) {
+		lock.lock();
+		int temp = balance;
+		try { 
+			Thread.sleep(100);
+			temp = temp - value;
+			Thread.sleep(108);
+			balanc e = temp;
+		} catch (interruptedException e) { } 
+		lock.unlock();
+		return temp;
+	}
+	public int deposit(int value) {
+	lock.lock();
+	int temp = balance;
+	try { 
+	Thread.sleep(100); 
+	temp = temp + value;
+	Thread.sleep(300);
+	balance = temp;
+	} catch (InterruptedException e) { } 
+	lock.unlock();
+		return temp;
+	}
+}	
+T?t nhiên, chúng tôi dã thêm mã d? c? ý làm ch?m vi?c th?c hi?n rút ti?n và g?i ti?n, vì nó giúp minh h?a các v?n d? ti?m nang có th? x?y ra. B?n có th? không vi?t mã chính xác nhu th? này, nhung tình hu?ng mà nó ph?n chi?u là r?t, r?t th?c t?. S? d?ng khóa s? giúp b?o v? tài nguyên du?c chia s? kh?i b? s?a d?i theo các cách không mong mu?n.
+
+Deadlocks and Deadlock Prevention
+M?t b? t?c là m?t tình hu?ng mà m?t Thread dang ch? m?t khóa d?i tu?ng mà m?t thread khác gi?, và thread th? hai này dang ch? m?t khóa d?i tu?ng mà thread d?u tiên gi? (ho?c m?t tình hu?ng tuong duong v?i m?t s? thread). Vì m?i thread dang ch? các thread khác t? b? khóa, c? hai d?u ch? d?i mãi mãi. Các ch? d? du?c cho là b? t?c.
+Ð? b? t?c x?y ra, b?n ph?i có t?t c? b?n di?u ki?n sau dây:
+1.	Lo?i tr? l?n nhau: Ch? m?t quy trình có th? truy c?p tài nguyên t?i m?t th?i di?m nh?t d?nh. (Ho?c, chính xác hon, có gi?i h?n truy c?p vào m?t tài nguyên. M?t b? t?c cung có th? x?y ra n?u m?t tài nguyên có s? lu?ng h?n ch?.)
+2.	Gi? và ch?: Các ti?n trình dã n?m gi? tài nguyên có th? yêu c?u các tài nguyên b? sung, mà không t? b? các tài nguyên hi?n t?i c?a chúng.
+3.	Không uu tiên: M?t quy trình không th? lo?i b? cu?ng b?c m?t tài nguyên quy trình khác.
+4.	Vòng ch? d?i: Hai quá trình n?a s? hình thành m?t chu?i vòng tròn, trong dó m?i quá trình dang ch? d?i m?t tài nguyên khác trong chu?i.
+Vi?c ngan ch?n deadlock dòi h?i lo?i b? b?t k? di?u ki?n nào ? trên, nhung nó tr? nên ph?c t?p vì nhi?u di?u ki?n này khó dáp ?ng. Ví d?: vi?c xóa s? 1 r?t khó b?i vì nhi?u tài nguyên ch? có th? du?c s? d?ng b?i m?t quy trình t?i m?t th?i di?m (ví d?: máy in). H?u h?t các thu?t toán ngan ch?n b? t?c t?p trung vào vi?c tránh di?u ki?n # 4: vòng d?i.
+
+
+
+
+
+		
+
+trong m?t b?a an t?i n?i ti?ng, m?t lo?t các nhà tri?t h?c dang ng?i quanh m?t chi?c bàn tròn v?i m?t chi?c dua gi?a m?i ngu?i. m?t tri?t gia c?n c? hai dua d? an. và luôn luôn c?m dua bên trái tru?c cái dua bên ph?i. m?t b? t?c có th? có kh? nang x?y ra n?u t?t c? các tri?t gia d?t t?i dua trái cùng m?t lúc. s? d?ng các Threads and lock, th?c hi?n m?t mô ph?ng c?a các v?n d? tri?t h?c an u?ng ngan ng?a các b? t?c.
+16.4. thi?t k? m?t l?p ch? cung c?p khóa n?u không có b? t?c có th? x?y ra.
+16.5. gi? s? chúng ta có do?n mã sau:
+cùng m?t tru?ng h?p c?a Foo s? du?c chuy?n d?n ba lu?ng khác nhau. Ch? d? A s? g?i d?u tiên, chu?i B s? g?i th? hai và chu?i C s? g?i th? ba. thi?t k? m?t co ch? d? d?m b?o r?ng d?u tiên du?c g?i tru?c khi th? hai và th? hai du?c g?i tru?c khi th? ba.
+16,6
+b?n du?c c?p m?t l?p v?i phuong th?c A d?ng b? và phuong th?c bình thu?ng B. N?u b?n có hai lu?ng là ví d? c?a m?t chuong trình, chúng có th? th?c thi c? hai cùng m?t lúc không? h? có th? th?c thi A và B cùng m?t lúc không?
